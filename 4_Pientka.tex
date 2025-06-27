@@ -7,11 +7,14 @@
 \usepackage{fancyhdr}
 \usepackage{mathpartir}
 \usepackage{appendix}
+\usepackage{wasysym}
+\usepackage{stmaryrd}
 \usepackage[backend=biber,style=numeric,sorting=none]{biblatex} % bibliography, install biber otherwise it will not work
 \addbibresource{4_Pientka.bib}
 \usepackage[colorlinks=true, linkcolor=cyan, citecolor=cyan, urlcolor=blue]{hyperref}
 \usepackage{blindtext}
 \usepackage{bbm}
+\newcommand\notate[1]{\quad\rlap{$#1$}}
 %remove the line above
 
 \DefineBibliographyStrings{english}{
@@ -50,8 +53,8 @@ Contextual Modal Type Theory}}
 \thispagestyle{plain}
 \begin{center}
 \includegraphics[width=3in]{oplssLogo.png}\\[2\parskip]
-\sffamily \LARGE \slshape Lambda-Calculi for Logics
---- \upshape Valeria De Paiva \\[2ex]
+\sffamily \LARGE \slshape Introduction to Logical Foundations
+--- \upshape Brigitte Pientka \\[2ex]
 \large Lecture 4 - \slshape June 26, 2025
 \end{center}
 
@@ -63,24 +66,151 @@ As discussed in the previous lecture, the following notations are used:
     \item $\Gamma$ : context of `local' true assumptions, `live here and now', $\{\true{A_1},\ldots,\true{A_n}\}$
 \end{itemize}
 
-\section{Contextual Type}
+\section{Contextual Types}
+\subsection{Intro to contextual types}
 \begin{itemize}
-    \item We use a common example from natural deduction: \[x : A \supset B \supset C, y : A \land B \vdash \hole : B \supset C\]
+    \item We'll examine a common example from natural deduction: \[x : A \supset B \supset C, y : A \land B \vdash \hole : B \supset C\]
     \item Usually, we would like to fill the hole by applying \projl{B} to $A$ to get $B \supset C$
-    \item However, \hole here is not necessarily closed
+    \item However, \hole \, here is not necessarily closed
     \item The idea of contextual type is to pair the context (here is $x : A \supset B \supset C, y : A \land B$) with the conclusion (here is $B \supset C$)
     \item Think about when we type check the following:
-        \begin{mathpar}
+        \begin{equation}\label{ex1}
             \infer*{x : \textsf{int} \vdash \hole + 1: \textsf{int}}{\cdot \vdash \abs{x}{\hole + 1} : \textsf{int}}
-        \end{mathpar}
+        \end{equation}
     \item We know that $\hole$ stands for $\textsf{int}$ in the context of $x : \textsf{int}$
 \end{itemize}
 
 \noindent\textbf{Types/Props}
-$A := \ldots | \Box(\Psi \Vdash A)$
+$A := \ldots | \, \Box(\Psi \Vdash A)$
+\\We can read $\Psi \Vdash A$ as ``pair the context $\Psi$ with the conclusion $A$''. 
 
 \noindent\textbf{Terms}
-$M := \ldots | \BOX{(\Psi, M)}$
+$M := \ldots | \, \BOX{(\Psi, M)}$
+
+Some possible inhabitants of \hole given example \ref{ex1}:
+\begin{itemize}
+    \item 0
+    \begin{itemize}
+        \item A note: the term $\BOX(x:\textsf{int, 0)}$ has type $\Box(x: \textsf{int} \Vdash \textsf{int})$
+    \end{itemize}
+    \item $x$ (because we already have that $x: \textsf{int}$)
+    \item $x * x$
+\end{itemize} 
+
+Takeaway: we have a typing derivation that we haven't yet finished, represented by our \hole s. Thus we refer to the conclusion to infer the contextual type.
+\subsection{Contextual rule rewrites} 
+\begin{minipage}{3in}
+    \begin{mathpar}
+        \infer*{\Delta; \Psi \vdash M:A}{\Delta; \Gamma \vdash \BOX(\Psi, M): \Box(\Psi \Vdash A)} \notate{(\Box I)}
+    \end{mathpar}
+\end{minipage}
+\hfill
+\begin{minipage}{3in}
+    \begin{mathpar}
+        \infer*{\Delta; \Gamma \vdash M: \Box(\Psi \Vdash A) \; \; \; \; (\Delta, u:(\Psi \Vdash A)); \Gamma \vdash N}{\Delta; \Gamma \vdash \textsf{let } \BOX u = M \textsf{ in } N:C} \notate{(\Box E)}
+    \end{mathpar}
+\end{minipage}
+
+\medskip
+
+\begin{minipage}{3in}
+    \begin{mathpar}
+        \infer*{x: A \textsf{ true} \in \Gamma}{\Delta; \Gamma \vdash x: A}
+    \end{mathpar}
+\end{minipage}
+\begin{minipage}{3in}
+\begin{mathpar}
+    \infer*{u: (\Psi \Vdash A) \in \Delta \; \; \; \; \Delta; \Gamma \vdash \sigma: \Psi}{\Delta; \Gamma \vdash \textsf{clo}(u, \sigma):A}
+\end{mathpar}
+\end{minipage}
+
+We define the relation between $\Psi$ and $\Gamma$ by providing witnesses: 
+\smallskip
+\\in equation $\Delta; \Gamma \vdash \sigma: \Psi,$
+\begin{itemize}
+    \item $\sigma = M_1/x_1, \,\ldots, M_n/x_n$
+    \item $\Psi = x_1:A_1 \textsf{ true}, \,\ldots, x_n: A_n \textsf{ true}$
+\end{itemize}
+where $\Delta; \Gamma \vdash M_i: A_i$.
+
+In more formal terms,
+\begin{mathpar}
+    \infer*{\Delta; \Gamma \vdash \sigma: \Psi \;\;\;\; \Delta; \Gamma \vdash M:A}{\Delta; \Gamma \vdash (\sigma, M/x): \Psi, x:A}
+\end{mathpar}
+
+In essence, $\Psi$ is the domain, $\Gamma$ is the range, and $\sigma$ is a mapping from $\Psi \longrightarrow \Gamma$. We provide instantiations for all $x \in \Psi,$ then make sure that all of these instantiations make sense in $\Gamma$.
+
+Intuitively, doesn't it make sense that $\Box(x:A, y:B \Vdash C)$ is ``equivalent'' to $\Box(A\supset B\supset C)$? A small derivation:
+\begin{mathpar}
+    \infer*
+    {\Delta; x: A, y: B \vdash \,\ldots \,C}
+    {\infer*{\Delta; x: A \vdash \, \ldots \, B \supset C}
+    {\infer*{\Delta; \cdot \vdash \, \ldots \, : A \supset B \supset C}
+    {\Delta; \Gamma \vdash \, \ldots \, : \Box A \supset B \supset C}}}
+\end{mathpar}
+
+\section{Comparing contextual and non-contextual types}
+\subsection{Example 1: implication chains}
+\textbf{Type: } $\Box(C \supset A) \supset \Box(C \supset D \supset A)$
+\smallskip
+\\\textbf{Term:} $\lambda x: \Box(C \supset A). \textsf{let } \BOX u = x \textsf{ in } \BOX(\lambda y: C. \lambda x: D. \; u \,\, y)$
+\; \; \; (where $u = C \supset A \textsf{ valid}$)
+
+We can see that our $\BOX$ holds instructions followed by a function application: $u$ applied to $y$.
+
+Now using contextual types: 
+\smallskip \\ 
+\textbf{Type: } $\Box(x': C \Vdash A) \supset \Box(y:C, x:D \Vdash A)$
+\smallskip
+\\ \textbf{Term: } 
+\\ $\lambda x: \Box(x': C \Vdash A). \; \letin{\BOX u = x}{\BOX(y:C, x:D. \; \clo{(u, y/x'))}}$ \; (where $u = (x': C \Vdash A))$
+
+In this example, we turn $x'$s into $y$s using a closure (\textsf{clo}) instead of a function application. Closures fire much sooner than function applications, which we'll explore more in the following example.
+
+\subsection{Example 2: \textsf{nth} function}
+Rewriting our $\textsf{nth}$ function from the previous lecture, we have type signature 
+$$\textsf{nth}: \textsf{int} \longrightarrow \Box(v: \textsf{bool\_vec} \Vdash \textsf{bool})$$ where
+\begin{align*}
+    \textsf{nth } 0 & = \BOX(v: \textsf{bool\_vec},\,\textsf{hd } v) \\
+    \textsf{nth } (\textsf{suc } n) & = \letin{\BOX u = \textsf{nth }n}{\BOX(v: \textsf{bool\_vec}, \clo{(u, \textsf{tl }v))}}.
+\end{align*}
+
+Let's evaluate an example, $\textsf{nth } 2$:
+\begin{align*}
+    \textsf{nth }2 & \longrightarrow  \letin{\BOX u = \textsf{nth }1}{\BOX(v:{bool\_vec}, \clo{(u, \textsf{tl }v/v_1))}}\\
+    \textsf{nth } 1 & \longrightarrow \letin{\BOX u = \textsf{nth }0}{\BOX(v:{bool\_vec}, \clo{(u, \textsf{tl }v/v_0))}}\\
+    &\longrightarrow \letin{\BOX u = \BOX(v_0, \textsf{hd }v_0)}{\BOX(v:{bool\_vec}, \clo{(u, \textsf{tl }v/v_0))}}\\
+    &\longrightarrow \BOX(v, \clo{(\textsf{hd }v_0, \textsf{tl }v/v_0))} \\
+    &\longrightarrow \BOX(v. \textsf{hd}(\textsf{tl }v))
+\end{align*}
+
+We can see that our contextual-typed version is eager, thus giving us the expected answer that our lazy function-evaluated \textsf{nth } function failed to show in the previous lecture. Functions evaluate once they have all of the information; contextual types treat arguments like syntax and splice until they get the most simplified result.
+\begin{itemize}
+    \item Substitution for ``local'' variables: $[M/x]x = M$
+    \item Modal substitution for global variables: $\llbracket (\Psi. M)/u\rrbracket \clo{(u, \sigma)} = [\sigma] M$
+\end{itemize}
+
+One example of where this is used is in simplifying expressions like $\box{(\textsf{fn } x \rightarrow x + (x + 0))}$. We want our program to continue to analyze this expression, resulting in the simpler $\box{(\textsf{fn } x \rightarrow x + x)}$. However, the program can't \textit{evaluate} because we don't have a value of $x$ provided. Thus, we use syntax manipulation - $(x+ 0)$ is itself a contextual type.
+
+\section{Another view: ``quote and splice''}
+In the Kripke-like ``quote and splice'' view, we have expressions like 
+$$\Gamma_1; \, \ldots \, ; \Gamma_n \vdash M:A$$
+and rules like
+\\
+\begin{minipage}{3in}
+    \begin{mathpar}
+        \infer*{\overrightarrow{\Gamma}; \Gamma; \cdot \vdash M:A}{\overrightarrow{\Gamma}; \Gamma \vdash \box{M: \Box A}}
+    \end{mathpar}
+\end{minipage}
+\begin{minipage}{3in}
+\begin{mathpar}
+    \infer*{\overrightarrow{\Gamma}; \Gamma \vdash M: \Box A}{\overrightarrow{\Gamma}; \Gamma_i; \, \ldots\, ; \Gamma_n \vdash \textsf{unbox}_n M: A}
+\end{mathpar}
+\end{minipage}
+The two views are proven to be equivalent. The Kripke view is more akin to code, but the contextually-typed view is more well-behaved.
+
+
+
 
 
 \newpage
