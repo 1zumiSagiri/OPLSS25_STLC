@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[top=0.75in, bottom=1.25in, left=1in, right=1in,includefoot]
+{geometry}
+\usepackage{fancyhdr}
+\usepackage{mathpartir}
+\usepackage{appendix}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex} % bibliography, install biber otherwise it will not work
+\addbibresource{4_Pientka.bib}
+\usepackage[colorlinks=true, linkcolor=cyan, citecolor=cyan, urlcolor=blue]{hyperref}
+\usepackage{blindtext}
+\usepackage{bbm}
+%remove the line above
+
+\DefineBibliographyStrings{english}{
+    % add bibliography page to table of contents
+    bibliography = {References},
+}
+
+\newcommand{\valid}[1]{\ensuremath{#1 :\textsf{valid}}}
+\newcommand{\true}[1]{\ensuremath{#1 :\textsf{true}}}
+\newcommand{\projl}[1]{\ensuremath{\textsf{proj}_1\mkern2mu#1}}
+\newcommand{\abs}[2]{\ensuremath{\lambda #1.\,#2}}
+\newcommand{\letin}[2]{\ensuremath{\textsf{let}~#1 \mathrel{\textsf{in}} #2}}
+\newcommand{\BOX}[1]{\ensuremath{\textsf{box}~#1}}
+\newcommand{\clo}[1]{\ensuremath{\textsf{clo}~#1}}
+\newcommand{\hole}{\fbox{\rule{1.5em}{0pt}\rule{0pt}{0.6em}}\ }
+
+\pagestyle{fancy}
+\fancyhead[L]{\fancyhdrbox[c]{\Large \slshape \sffamily 
+Contextual Modal Type Theory}}
+\fancyhead[C]{}
+\fancyhead[R]{\large \sffamily \bfseries Brigitte Pientka}
+
+\fancyfoot[L]{\fancyhdrbox[b]{\sffamily \small Compiled By: \\ 
+\normalsize \sffamily Adam Brohl, Ellen Whalen, Vincent Chan}}
+%Change the names above to your names
+
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\fancyhdrbox[b]{\includegraphics[height=0.35in]{oplssLogo.png}}}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex}
+\setlength{\headheight}{1.25in}
+
+\begin{document}
+\thispagestyle{plain}
+\begin{center}
+\includegraphics[width=3in]{oplssLogo.png}\\[2\parskip]
+\sffamily \LARGE \slshape Lambda-Calculi for Logics
+--- \upshape Valeria De Paiva \\[2ex]
+\large Lecture 4 - \slshape June 26, 2025
+\end{center}
+
+\section{Notations}
+As discussed in the previous lecture, the following notations are used:
+\begin{itemize}
+    \item $\Box A : A$ is necessarily true / $A$ is valid
+    \item $\Delta$ : context of `global' valid assumptions, `live forever', $\{\valid{A_1},\ldots,\valid{A_n}\}$
+    \item $\Gamma$ : context of `local' true assumptions, `live here and now', $\{\true{A_1},\ldots,\true{A_n}\}$
+\end{itemize}
+
+\section{Contextual Type}
+\begin{itemize}
+    \item We use a common example from natural deduction: \[x : A \supset B \supset C, y : A \land B \vdash \hole : B \supset C\]
+    \item Usually, we would like to fill the hole by applying \projl{B} to $A$ to get $B \supset C$
+    \item However, \hole here is not necessarily closed
+    \item The idea of contextual type is to pair the context (here is $x : A \supset B \supset C, y : A \land B$) with the conclusion (here is $B \supset C$)
+    \item Think about when we type check the following:
+        \begin{mathpar}
+            \infer*{x : \textsf{int} \vdash \hole + 1: \textsf{int}}{\cdot \vdash \abs{x}{\hole + 1} : \textsf{int}}
+        \end{mathpar}
+    \item We know that $\hole$ stands for $\textsf{int}$ in the context of $x : \textsf{int}$
+\end{itemize}
+
+\noindent\textbf{Types/Props}
+$A := \ldots | \Box(\Psi \Vdash A)$
+
+\noindent\textbf{Terms}
+$M := \ldots | \BOX{(\Psi, M)}$
+
+
+\newpage
+\printbibliography[heading=bibintoc]
+\end{document}

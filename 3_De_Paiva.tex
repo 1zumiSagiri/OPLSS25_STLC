@@ -1,0 +1,154 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[top=0.75in, bottom=1.25in, left=1in, right=1in,includefoot]
+{geometry}
+\usepackage{fancyhdr}
+\usepackage{mathpartir}
+\usepackage{appendix}
+\usepackage[backend=biber,style=numeric,sorting=none]{biblatex} % bibliography, install biber otherwise it will not work
+\addbibresource{3_De_Paiva.bib}
+\usepackage[colorlinks=true, linkcolor=cyan, citecolor=cyan, urlcolor=blue]{hyperref}
+\usepackage{blindtext}
+\usepackage{bbm}
+%remove the line above
+
+\DefineBibliographyStrings{english}{
+    % add bibliography page to table of contents
+    bibliography = {References},
+}
+
+\pagestyle{fancy}
+\fancyhead[L]{\fancyhdrbox[c]{\Large \slshape \sffamily 
+Lambda-Calculi for Logics}}
+\fancyhead[C]{}
+\fancyhead[R]{\large \sffamily \bfseries Valeria De Paiva }
+
+\fancyfoot[L]{\fancyhdrbox[b]{\sffamily \small Compiled By: \\ 
+\normalsize \sffamily Adam Brohl, Ellen Whalen, Vincent Chan}}
+%Change the names above to your names
+
+\fancyfoot[C]{\thepage}
+\fancyfoot[R]{\fancyhdrbox[b]{\includegraphics[height=0.35in]{oplssLogo.png}}}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2ex}
+\setlength{\headheight}{1.25in}
+
+\begin{document}
+\thispagestyle{plain}
+\begin{center}
+\includegraphics[width=3in]{oplssLogo.png}\\[2\parskip]
+\sffamily \LARGE \slshape Lambda-Calculi for Logics
+--- \upshape Valeria De Paiva \\[2ex]
+\href{https://github.com/vcvpaiva/DialecticaCategories/blob/master/OPLSS2025/OregonLecture3.pdf}{\large Lecture 3 - \slshape June 25, 2025}
+\end{center}
+
+\section{Linear Functional Programming}
+\begin{itemize}
+    \item It took us twenty years to combine categorical combinators and linear logic to create categorical abstract machines for linear functional programming. This brought us linear types and showed how category theory is baked into the language's syntax
+    \item Although Rust and Haskell have linear type systems, they are not yet mainstream programming languages\cite{Bernardy2017LinearHaskell}
+\end{itemize}
+
+\section{Explicit substitution}
+\begin{itemize}
+    \item Instead of implicit substitution via $\beta$-reduction, we want to have explicit substitution
+    \item We have the syntax, but we don't yet have a semantic-level model for it
+    \item Recall $\lambda$-calculus. We define the rules and terms, and computations are performed via $\beta$-reduction
+    \item In classical $\beta$-rule, the substitution mechanism usually involves replacing a variable within a term depending on the context
+    \item Implementing an efficient $\beta$-reduction can be difficult and error-prone
+    \item Traditionally, we store the bindings of terms in an collection, the language consists of terms and environments
+    \item Making it explicit will make the reasoning and proofing more straightforward and easier
+    \item The syntax of the $\lambda$-calculus should have a categorical semantics with mathematics as the source
+    \item We create new rewrite rules that store substitutions in the environment instead of binding them. This will eliminate substitutions and work for various logic systems.
+    \item The new contexts $z : A \times B$ and $x : A, y : B$ are isomorphic
+\end{itemize}
+
+\section[Lambda-sigma-calculus]{$\lambda\sigma$-calculus}
+\begin{itemize}
+    \item $\lambda$-calculus + application of substitutions to a term: $f \ast t$
+    \item Substitutions are judgments now, and can be paralleled and composed
+    \item (Part of) rules for substitution evaluation:
+    \begin{mathpar}
+        \infer*{\Gamma' \subseteq \Gamma}{\Gamma \vdash \langle \rangle : \Gamma'}\and
+        \infer*{\Gamma \vdash f : \Delta\\ \Gamma \vdash t:A}{\Gamma \vdash \langle f, x \mapsto t \rangle : \Delta, x : A}\and
+        \infer*{\Gamma \vdash f : \Delta\\ \Delta \vdash t:A}{\Gamma \vdash f \ast t : A}\and
+        \infer*{\Gamma \vdash f : \Delta\\ \Delta \vdash g:\Psi}{\Gamma \vdash f;g : \Psi}
+    \end{mathpar}
+    \item We bake substitution operators into language using a set of rewriting rules, but some issues$\ldots$
+    \item Composition of substitutions allows more interactions; many design choices, and
+    \item Counterexample idea: Cyclic substitution leads to non-termination during strong normalization
+    \item We need a categorical, semantic way to express these
+\end{itemize}
+
+\section{Categorical Semantics}
+\begin{itemize}
+    \item We want to extend the Curry-Howard correspondence to a categorical semantics
+    \item Internal language gives term construcs and equational theory
+    \item Indexed category theory as syntax debugging
+    \item In an indexed category $D : C^{op} \to Cat$, contexts as objects, morphisms as substitutions
+    \item Empty context as identity, assoc rewriting can be done in assoc compostions
+    \item For every context $\Gamma$, we have a category $D(\Gamma)$
+        \begin{itemize}
+            \item Objects are variable-type pairs $(x : A)$
+            \item Morphisms $(x : A) \to (t : B)$ are judgments of the form $\Gamma, x : A \vdash t : B$
+        \end{itemize}
+    \item When re-indexing, we use $\Gamma \vdash f : \Delta$ to denote a functor $D(f) : D(\Delta) \to D(\Gamma)$
+    \item But it lead to some issues such as the non-linear nature of indexed category
+\end{itemize}
+
+\section{Context-Handling Categories}
+\begin{itemize}
+    \item Solutions: Convert $D^{op}$ into set $\mathcal{T}$; Add two new natural transformations
+    \item Define a Symmetric Monoidal Category $\mathcal{B}$ with $\mathcal{T} \subseteq |\mathcal{B}|$
+    \item Define a linear catersian context-handling category $L: \mathcal{B}^{op} \to Sets^{\mathcal{T}}$ with the following natural transformations:
+    \[ \text{Sub}_A : L(-)_A \Rightarrow \mathcal{B}(-, A) \ \ \text{Term}_A: \mathcal{B}(-, A) \Rightarrow L(-)_A\]
+    \item We still keep the products, but SMC for linear fibre, otherwise CCC
+    \item We now have two categories $E$ and $L$
+    \item \textbf{E-Category}
+        \begin{itemize}
+            \item Type constructors require extra structures on the category
+            \item Given $A, B \in \mathcal{T}$, we have $A \to B, A \times B \in \mathcal{T}$
+                  with isomorphisms in $\Gamma$:
+                  \begin{mathpar}
+                        \infer*{E((\Gamma, A)_B)}{E(\Gamma)_{A \to B}}\and
+                        \infer*{E(\Gamma)_A \times E(\Gamma)_B}{E(\Gamma)_{A \times B}}
+                  \end{mathpar}
+            \item Naturality distributes explicit substitutions over the terms
+                  \[f \ast \lambda x.t = \lambda x.f \ast t \ \ f \ast (tu) = (f \ast t)(f \ast u)\]
+        \end{itemize}
+    \item \textbf{L-Category}
+        \begin{itemize}
+            \item Given $A, B \in \mathcal{T}$, we have $A \multimap  B\in \mathcal{T}$
+                with isomorphisms in $\Gamma$:
+                \begin{mathpar}
+                    \infer*{E((\Gamma, A)_B)}{E(\Gamma)_{A \multimap B}}
+                \end{mathpar}
+            \item Tensor product however is not isomorphic \[z: A \otimes B \cong x : A, y : B\]
+        \end{itemize}
+    \item \textbf{!-type constructor}        
+        \begin{itemize}
+            \item ! as the comonad of a monoidal adjunction between CCCs and SMCCs\cite{Benton1994LinearNonLinear}
+            \item !L-category adjunct E and L cats together, and isomorphisms
+            \item Models of explicit substitutions
+                \begin{itemize}
+                    \item E-cat $\to, \times, \mathbbm{1}$, $\lambda\sigma$-calculus
+                    \item L-cat $\multimap, \otimes, I$
+                \end{itemize}
+        \end{itemize}
+    \item Preserve the soundness and completeness for both E and L categories
+\end{itemize}
+
+\section{Conclusions}
+\begin{itemize}
+    \item High-order category theory maps one category to a collection of categories
+    \item Extension of curry-howard, easier than dependent type and modality
+    \item Mathematics foundation for explicit substitution
+    \item Can be done in multiple potential modalities/substructural logics
+\end{itemize}
+
+\newpage
+\printbibliography[heading=bibintoc]
+\end{document}
